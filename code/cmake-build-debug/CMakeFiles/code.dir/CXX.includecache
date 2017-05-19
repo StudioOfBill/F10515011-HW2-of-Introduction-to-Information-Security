@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code/DES.h
+
+/Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code/main.cpp
+iostream
+-
+fstream
+-
+vector
+-
+cstdio
+-
+cstdlib
+-
+DES.h
+/Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code/DES.h
+

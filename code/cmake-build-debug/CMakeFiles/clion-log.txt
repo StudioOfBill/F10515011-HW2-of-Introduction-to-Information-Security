@@ -1,0 +1,5 @@
+/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code
+-- Configuring done
+CMake Error: Could not create /Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code/cmake-build-debug/CMakeFiles/code.dir/cmake_clean.cmake
+-- Generating done
+-- Build files have been written to: /Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code/cmake-build-debug
