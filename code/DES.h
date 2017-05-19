@@ -7,8 +7,8 @@
 
 class DES {
 public:
-    static bool encrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {}
-    static bool decrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {}
+    bool encrypt(uint8_t BLOCK[8], uint8_t KEY[7]);
+    bool decrypt(uint8_t BLOCK[8], uint8_t KEY[7]);
 };
 
 

@@ -1,4 +1,4 @@
-# Install script for directory: /Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code
+# Install script for directory: /Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -35,5 +35,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/stybill/Desktop/introduction_to_information_security/homeworks/HW2-of-Introduction-to-Information-Security/code/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

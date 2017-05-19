@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <vector>
 
-static BMP_IO BMP_IO::read_image(const std::string path, BMP_IO filee){
+bool BMP_IO::read_image(const std::string path, BMP_IO * filee){
     FILE* input_file;
     input_file = fopen(path, "rb");
 
@@ -59,10 +59,10 @@ static BMP_IO BMP_IO::read_image(const std::string path, BMP_IO filee){
     }
 
     fclose(input_file);
-    return filee;
-};
+    return true;
+}
 
-static BMP_IO BMP_IO::write_image(const std::string path, BMP_IO filee){
+bool BMP_IO::write_image(const std::string path, BMP_IO * filee){
     FILE* output_file;
     output_file = fopen(path, "wb");
     if (!output_file) {
@@ -111,5 +111,5 @@ static BMP_IO BMP_IO::write_image(const std::string path, BMP_IO filee){
         }
     }
     fclose(output_file);
-    return filee;
-};
+    return true;
+}

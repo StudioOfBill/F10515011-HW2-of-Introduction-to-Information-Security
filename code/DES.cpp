@@ -185,7 +185,7 @@ void BitToByte(uint8_t *Out, const bool *In, int bits)
     }
 }
 
-static bool DES::encrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {
+bool DES::encrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {
     cout << "lalala" << endl;
     static bool M[64], Tmp[32], *Li = &M[0], *Ri = &M[32];
     ByteToBit(M, BLOCK, 64);// 字节组转换成位组
@@ -203,7 +203,7 @@ static bool DES::encrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {
     return true;
 }
 
-static bool DES::decrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {
+bool DES::decrypt(uint8_t BLOCK[8], uint8_t KEY[7]) {
     Des_SetKey(KEY);
     static bool M[64], Tmp[32], *Li = &M[0], *Ri = &M[32];
     ByteToBit(M, BLOCK, 64);// 字节组转换成位组

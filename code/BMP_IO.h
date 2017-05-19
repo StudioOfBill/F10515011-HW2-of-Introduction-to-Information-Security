@@ -56,8 +56,8 @@ public:
     BITMAP_RGBMAP RGB_map[256];
     std::vector<BYTE> img_data;
 
-    static BMP_IO read_image(const std::string path, BMP_IO filee) {}
-    static BMP_IO write_image(const std::string path, BMP_IO filee) {}
+    bool read_image(const std::string path, BMP_IO * filee);
+    bool write_image(const std::string path, BMP_IO * filee);
 };
 
 #endif //CODE_BMP_IO_H
