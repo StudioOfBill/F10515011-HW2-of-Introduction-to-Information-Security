@@ -6,35 +6,13 @@
 
 #IncludeRegexTransform: 
 
-/Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code/BMP_IO.h
-stdio.h
--
-stdint.h
--
-vector
--
-iostream
--
-fstream
--
-string
--
-
-/Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code/DES.h
-
 /Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code/main.cpp
 iostream
 -
-fstream
--
 vector
 -
-cstdio
+fstream
 -
-cstdlib
+pthread.h
 -
-DES.h
-/Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code/DES.h
-BMP_IO.h
-/Users/stybill/Desktop/introduction_to_information_security/homeworks/F10515011-HW2-of-Introduction-to-Information-Security/code/BMP_IO.h
 
