@@ -493,21 +493,24 @@ void CFB_encrypt(BMP_IMG input) {
     bool tmp_1[64], tmp_2[64];
     uint8_t tmp_IV[8], tmp_data[8];
 
-    for (int i = 0; i < 8; ++i) {
-        tmp_IV[i] = IV[i];
-        tmp_data[i] = input.img_data[i - 8];
-    }
-
     for (int i = 0; i < input.img_data.size(); i += 8) {
         if (i == 0) {
+            for (int j = 0; j < 8; ++j) {
+                tmp_IV[j] = IV[j];
+            }
+
             encrypt(tmp_IV, Key);
             ByteToBit(tmp_1, tmp_IV, 64);
         } else {
+            for (int j = 0; j < 8; ++j) {
+                tmp_data[j] = input.img_data[i - 8 + j];
+            }
+
             encrypt(tmp_data, Key);
             ByteToBit(tmp_1, tmp_data, 64);
         }
 
-        ByteToBit(tmp_2, &input.img_data[i - 8], 64);
+        ByteToBit(tmp_2, &input.img_data[i], 64);
 
         Xor(tmp_1, tmp_2, 64);
 
@@ -540,6 +543,8 @@ void CBC_decrypt(BMP_IMG input) {
 
     bool tmp_1[64], tmp_2[64];
 
+    BMP_IMG input_copy = input;
+
     for (int i = 0; i < input.img_data.size(); i += 8) {
         decrypt(&input.img_data[i], Key);
 
@@ -548,7 +553,7 @@ void CBC_decrypt(BMP_IMG input) {
         if (i == 0) {
             ByteToBit(tmp_2, IV, 64);
         } else {
-            ByteToBit(tmp_2, &input.img_data[i - 8], 64);
+            ByteToBit(tmp_2, &input_copy.img_data[i - 8], 64);
         }
 
         Xor(tmp_1, tmp_2, 64);
@@ -564,14 +569,22 @@ void CFB_decrypt(BMP_IMG input) {
     get_IV();
 
     bool tmp_1[64], tmp_2[64];
-    uint8_t tmp_IV[8], tmp_data[8];
+    uint8_t tmp_IV[8], tmp_data[8], tmp_ciphertext[8];
 
     for (int i = 0; i < 8; ++i) {
         tmp_IV[i] = IV[i];
-        tmp_data[i] = input.img_data[i - 8];
+        tmp_ciphertext[i] = input.img_data[i];
     }
 
     for (int i = 0; i < input.img_data.size(); i += 8) {
+        for (int j = 0; j < 8; ++j) {
+            tmp_data[j] = tmp_ciphertext[j];
+        }
+
+        for (int j = 0; j < 8; ++j) {
+            tmp_ciphertext[j] = input.img_data[i + j];
+        }
+
         if (i == 0) {
             encrypt(tmp_IV, Key);
             ByteToBit(tmp_1, tmp_IV, 64);
@@ -580,13 +593,11 @@ void CFB_decrypt(BMP_IMG input) {
             ByteToBit(tmp_1, tmp_data, 64);
         }
 
-        ByteToBit(tmp_2, &input.img_data[i - 8], 64);
+        ByteToBit(tmp_2, tmp_ciphertext, 64);
 
         Xor(tmp_1, tmp_2, 64);
 
         BitToByte(&input.img_data[i], tmp_1, 64);
-
-        encrypt(&input.img_data[i], Key);
     }
 
     input.write_image("CFBdecrypted.bmp");
@@ -637,7 +648,7 @@ void CFB_runtime(BMP_IMG input) {
     clock_t start,end;
     start = clock();
 
-    CBC_encrypt(input);
+    CFB_encrypt(input);
 
     char * path = "CFBencrypted.bmp";
     BMP_IMG IMAGE;
@@ -645,7 +656,7 @@ void CFB_runtime(BMP_IMG input) {
         printf("CFB reading success!\n");
     }
 
-    CBC_decrypt(IMAGE);
+    CFB_decrypt(IMAGE);
 
     end = clock();
     printf("CFB Runtime: %lf ms\n",((double)((end - start) * 1000 / CLOCKS_PER_SEC)));
@@ -687,7 +698,7 @@ int main() {
 //
     CBC_runtime(IMAGE);
 
-//    CFB_encrypt(IMAGE);
+//    CFB_runtime(IMAGE);
 
 
 //    clock_t start,end;
