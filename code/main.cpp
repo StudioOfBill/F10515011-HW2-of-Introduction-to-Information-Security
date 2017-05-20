@@ -439,16 +439,19 @@ void example() {
 void ECB_encrypt(BMP_IMG input);
 void CBC_encrypt(BMP_IMG input);
 void CFB_encrypt(BMP_IMG input);
+void OFB_encrypt(BMP_IMG input, char * out_path);
 void CTR_encrypt(BMP_IMG input);
 
 void ECB_decrypt(BMP_IMG input);
 void CBC_decrypt(BMP_IMG input);
 void CFB_decrypt(BMP_IMG input);
+void OFB_decrypt(BMP_IMG input);
 void CTR_decrypt(BMP_IMG input);
 
 void ECB_runtime(BMP_IMG input);
 void CBC_runtime(BMP_IMG input);
 void CFB_runtime(BMP_IMG input);
+void OFB_runtime(BMP_IMG input);
 void CTR_runtime(BMP_IMG input);
 
 void ECB_encrypt(BMP_IMG input) {
@@ -519,6 +522,38 @@ void CFB_encrypt(BMP_IMG input) {
 
     input.write_image("CFBencrypted.bmp");
 }
+
+void OFB_encrypt(BMP_IMG input, char * out_path) {
+    get_key();
+    get_IV();
+
+    bool tmp_1[64], tmp_2[64];
+    uint8_t tmp_IV[8];
+
+    for (int i = 0; i < 8; ++i) {
+        tmp_IV[i] = IV[i];
+    }
+
+    BMP_IMG input_copy = input;
+
+    for (int i = 0; i < input.img_data.size(); i += 8) {
+        encrypt(tmp_IV, Key);
+
+        for (int j = 0; j < 8; ++j) {
+            input.img_data[i + j] = tmp_IV[j];
+        }
+    }
+
+    for (int i = 0; i < input.img_data.size(); i += 8) {
+        ByteToBit(tmp_1, &input.img_data[i], 64);
+        ByteToBit(tmp_2, &input_copy.img_data[i], 64);
+        Xor(tmp_1, tmp_2, 64);
+        BitToByte(&input.img_data[i], tmp_1, 64);
+    }
+
+    input.write_image(out_path);
+}
+
 
 void CTR_encrypt(BMP_IMG input) {
 
@@ -601,6 +636,10 @@ void CFB_decrypt(BMP_IMG input) {
     input.write_image("CFBdecrypted.bmp");
 }
 
+void OFB_decrypt(BMP_IMG input, char * out_path) {
+    OFB_encrypt(input, out_path);
+}
+
 void CTR_decrypt(BMP_IMG input) {
 
 }
@@ -660,11 +699,29 @@ void CFB_runtime(BMP_IMG input) {
     printf("CFB Runtime: %lf ms\n",((double)((end - start) * 1000 / CLOCKS_PER_SEC)));
 }
 
+void OFB_runtime(BMP_IMG input) {
+    clock_t start,end;
+    start = clock();
+
+    OFB_encrypt(input, "OFBencrypted.bmp");
+
+    char * path = "OFBencrypted.bmp";
+    BMP_IMG IMAGE;
+    if (IMAGE.read_image(path)) {
+        printf("OFB reading success!\n");
+    }
+
+    OFB_decrypt(IMAGE, "OFBdecrypted.bmp");
+
+    end = clock();
+    printf("OFB Runtime: %lf ms\n",((double)((end - start) * 1000 / CLOCKS_PER_SEC)));
+}
+
 void CTR_runtime(BMP_IMG input) {
     clock_t start,end;
     start = clock();
 
-    CBC_encrypt(input);
+    CTR_encrypt(input);
 
     char * path = "CTRencrypted.bmp";
     BMP_IMG IMAGE;
@@ -672,7 +729,7 @@ void CTR_runtime(BMP_IMG input) {
         printf("CTR reading success!\n");
     }
 
-    CBC_decrypt(IMAGE);
+    CTR_decrypt(IMAGE);
 
     end = clock();
     printf("CTR Runtime: %lf ms\n",((double)((end - start) * 1000 / CLOCKS_PER_SEC)));
@@ -692,11 +749,13 @@ int main() {
         printf("Reading success!\n");
     }
 
-    ECB_runtime(IMAGE);
+//    ECB_runtime(IMAGE);
+//
+//    CBC_runtime(IMAGE);
+//
+//    CFB_runtime(IMAGE);
 
-    CBC_runtime(IMAGE);
-
-    CFB_runtime(IMAGE);
+    OFB_runtime(IMAGE);
 
 
 //    clock_t start,end;
