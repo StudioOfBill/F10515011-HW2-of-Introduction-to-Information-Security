@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <pthread.h>
+#include <thread>
 
 using namespace std;
 
@@ -158,47 +158,27 @@ public:
     };
 };
 
+
+class thread_raii {
+    std::thread& t;
+public:
+
+    explicit thread_raii(std::thread& t_) : t(t_) { }
+
+    ~thread_raii() {
+        if(t.joinable()) {
+            t.join();
+        }
+    }
+
+    thread_raii(thread_raii const&)=delete;
+    thread_raii& operator=(thread_raii const&)=delete;
+};
+
+vector<thread> threads;
+
+
 uint8_t Key[8], IV[8];
-
-void get_key() {
-    ifstream key_file("Key.txt");
-    if (!key_file.is_open()) {
-        cout << "Error opening key file";
-        exit (1);
-    }
-
-    for (int i = 0; i < 8; ++i) {
-        key_file >> Key[i];
-    }
-
-    key_file.close();
-}
-
-void get_IV() {
-    ifstream key_file("IV.txt");
-    if (!key_file.is_open()) {
-        cout << "Error opening key file";
-        exit (1);
-    }
-
-    for (int i = 0; i < 8; ++i) {
-        key_file >> IV[i];
-    }
-
-    key_file.close();
-}
-
-
-
-void Des_SetKey(const uint8_t Key[8]);
-void F_func(bool In[32], const bool Ki[48]);
-void S_func(bool Out[32], const bool In[48]);
-void Transform(bool *Out, bool *In, const uint8_t *Table, int len);
-void Xor(bool *InA, const bool *InB, int len);
-void RotateL(bool *In, int len, int loop);
-void ByteToBit(bool *Out, const uint8_t *In, int bits);
-void BitToByte(uint8_t *Out, const bool *In, int bits);
-void PlusOne(bool *In, int len);
 
 static const uint8_t IP_Table[64] = {
         58,50,42,34,26,18,10,2,60,52,44,36,28,20,12,4,
@@ -289,13 +269,83 @@ static const uint8_t S_Box[8][4][16] = {
 
 static bool SubKey[16][48];
 
-void Des_SetKey(const uint8_t Key[8])
-{
+void get_key();
+void get_IV();
+
+void Des_SetKey(const uint8_t Key[8]);
+
+void F_func(bool In[32], const bool Ki[48]);
+
+void S_func(bool Out[32], const bool In[48]);
+
+void Transform(bool *Out, bool *In, const uint8_t *Table, int len);
+
+void Xor(bool *InA, const bool *InB, int len);
+
+void RotateL(bool *In, int len, int loop);
+
+void ByteToBit(bool *Out, const uint8_t *In, int bits);
+void BitToByte(uint8_t *Out, const bool *In, int bits);
+
+bool encrypt(uint8_t BLOCK[8], uint8_t KEY[8]);
+bool decrypt(uint8_t BLOCK[8], uint8_t KEY[8]);
+
+void PlusOne(bool *In, int len);
+
+void ECB_encrypt(BMP_IMG input);
+void CBC_encrypt(BMP_IMG input);
+void CFB_encrypt(BMP_IMG input);
+void OFB_encrypt(BMP_IMG input, char * out_path);
+void CTR_encrypt(BMP_IMG input, char * out_path);
+
+void ECB_decrypt(BMP_IMG input);
+void CBC_decrypt(BMP_IMG input);
+void CFB_decrypt(BMP_IMG input);
+void OFB_decrypt(BMP_IMG input, char * out_path);
+void CTR_decrypt(BMP_IMG input, char * out_path);
+
+void ECB_runtime(BMP_IMG input);
+void CBC_runtime(BMP_IMG input);
+void CFB_runtime(BMP_IMG input);
+void OFB_runtime(BMP_IMG input);
+void CTR_runtime(BMP_IMG input);
+
+void get_key() {
+    ifstream key_file("Key.txt");
+    if (!key_file.is_open()) {
+        cout << "Error opening key file";
+        exit (1);
+    }
+
+    for (int i = 0; i < 8; ++i) {
+        key_file >> Key[i];
+    }
+
+    key_file.close();
+}
+
+void get_IV() {
+    ifstream key_file("IV.txt");
+    if (!key_file.is_open()) {
+        cout << "Error opening key file";
+        exit (1);
+    }
+
+    for (int i = 0; i < 8; ++i) {
+        key_file >> IV[i];
+    }
+
+    key_file.close();
+}
+
+
+
+void Des_SetKey(const uint8_t Key[8]) {
     static bool K[64], *KL = &K[0], *KR = &K[28];
     ByteToBit(K, Key, 64);
     Transform(K, K, PC1_Table, 56);
-    for(int i=0; i<16; i++)
-    {
+
+    for(int i=0; i<16; i++) {
         RotateL(KL, 28, LOOP_Table[i]);
         RotateL(KR, 28, LOOP_Table[i]);
         Transform(SubKey[i], K, PC2_Table, 48);
@@ -304,8 +354,7 @@ void Des_SetKey(const uint8_t Key[8])
 
 
 
-void F_func(bool In[32], const bool Ki[48])
-{
+void F_func(bool In[32], const bool Ki[48]) {
     static bool MR[48];
     Transform(MR, In, E_Table, 48);
     Xor(MR, Ki, 48);
@@ -313,57 +362,49 @@ void F_func(bool In[32], const bool Ki[48])
     Transform(In, In, P_Table, 32);
 }
 
-void S_func(bool Out[32], const bool In[48])
-{
-    for(uint8_t i=0,j,k; i<8; i++,In+=6,Out+=4)
-    {
+void S_func(bool Out[32], const bool In[48]) {
+    for(uint8_t i=0,j,k; i<8; i++,In+=6,Out+=4) {
         j = (In[0]<<1) + In[5];
         k = (In[1]<<3) + (In[2]<<2) + (In[3]<<1) + In[4];
         ByteToBit(Out, &S_Box[i][j][k], 4);
     }
 }
 
-void Transform(bool *Out, bool *In, const uint8_t *Table, int len)//变换
-{
+void Transform(bool *Out, bool *In, const uint8_t *Table, int len) {
     static bool Tmp[256];
-    for(int i = 0; i < len; i++)
-    {
+
+    for(int i = 0; i < len; i++) {
         Tmp[i] = In[ Table[i] - 1 ];
     }
+
     memcpy(Out, Tmp, len);
 }
 
 
 
-void Xor(bool *InA, const bool *InB, int len)//异或
-{
-    for(int i = 0; i < len; i++)
-    {
+void Xor(bool *InA, const bool *InB, int len) {
+    for(int i = 0; i < len; i++) {
         InA[i] ^= InB[i];
     }
 }
 
-void RotateL(bool *In, int len, int loop)//循环左移
-{
+void RotateL(bool *In, int len, int loop) {
     static bool Tmp[256];
     memcpy(Tmp, In, loop);
     memcpy(In, In+loop, len-loop);
     memcpy(In+len-loop, Tmp, loop);
 }
 
-void ByteToBit(bool *Out, const uint8_t *In, int bits)//字节组转换成位组
-{
-    for(int i = 0; i < bits; i++)
-    {
+void ByteToBit(bool *Out, const uint8_t *In, int bits) {
+    for(int i = 0; i < bits; i++) {
         Out[i] = (In[i/8] >> (i%8)) & 1;
     }
 }
 
-void BitToByte(uint8_t *Out, const bool *In, int bits)
-{
+void BitToByte(uint8_t *Out, const bool *In, int bits) {
     memset(Out, 0, (bits+7)/8);
-    for(int i = 0; i < bits; i++)
-    {
+
+    for(int i = 0; i < bits; i++) {
         Out[i/8] |= In[i] << (i%8);
     }
 }
@@ -404,56 +445,6 @@ bool decrypt(uint8_t BLOCK[8], uint8_t KEY[8]) {
     return true;
 }
 
-
-void example() {
-    uint8_t in[8], Key[8];
-
-    for (int i = 0; i < 8; ++i) {
-        in[i] = 0xfb;
-    }
-
-    for (int i = 0; i < 8; ++i) {
-        Key[i] = 0xab;
-    }
-
-    for (int i = 0; i < 8; ++i) {
-        printf("%2x\t", in[i]);
-    }
-
-    encrypt(in, Key);
-    printf("\n");
-
-    for (int i = 0; i < 8; ++i) {
-        printf("%2x\t", in[i]);
-    }
-
-    decrypt(in, Key);
-    printf("\n");
-
-    for (int i = 0; i < 8; ++i) {
-        printf("%2x\t", in[i]);
-    }
-
-    printf("\n");
-}
-
-void ECB_encrypt(BMP_IMG input);
-void CBC_encrypt(BMP_IMG input);
-void CFB_encrypt(BMP_IMG input);
-void OFB_encrypt(BMP_IMG input, char * out_path);
-void CTR_encrypt(BMP_IMG input, char * out_path);
-
-void ECB_decrypt(BMP_IMG input);
-void CBC_decrypt(BMP_IMG input);
-void CFB_decrypt(BMP_IMG input);
-void OFB_decrypt(BMP_IMG input, char * out_path);
-void CTR_decrypt(BMP_IMG input, char * out_path);
-
-void ECB_runtime(BMP_IMG input);
-void CBC_runtime(BMP_IMG input);
-void CFB_runtime(BMP_IMG input);
-void OFB_runtime(BMP_IMG input);
-void CTR_runtime(BMP_IMG input);
 
 void PlusOne(bool *In, int len) {
     if (len > 0) {
@@ -784,7 +775,6 @@ void CTR_runtime(BMP_IMG input) {
 
 
 
-
 int main() {
     BMP_IMG IMAGE;
     char * path_in = "test.bmp";
@@ -801,15 +791,6 @@ int main() {
     OFB_runtime(IMAGE);
 
     CTR_runtime(IMAGE);
-
-
-//    clock_t start,end;
-//    start = clock();
-//
-//    example();
-//
-//    end = clock();
-//    printf("Use Time: %lf ms\n",((double)((end - start) * 1000 / CLOCKS_PER_SEC)));
 
     char * path_out = "output.bmp";
     if (IMAGE.write_image(path_out)) {
