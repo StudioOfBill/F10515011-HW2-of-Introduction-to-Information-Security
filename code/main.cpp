@@ -515,8 +515,6 @@ void CFB_encrypt(BMP_IMG input) {
         Xor(tmp_1, tmp_2, 64);
 
         BitToByte(&input.img_data[i], tmp_1, 64);
-
-        encrypt(&input.img_data[i], Key);
     }
 
     input.write_image("CFBencrypted.bmp");
@@ -694,11 +692,11 @@ int main() {
         printf("Reading success!\n");
     }
 
-//    ECB_runtime(IMAGE);
-//
+    ECB_runtime(IMAGE);
+
     CBC_runtime(IMAGE);
 
-//    CFB_runtime(IMAGE);
+    CFB_runtime(IMAGE);
 
 
 //    clock_t start,end;
